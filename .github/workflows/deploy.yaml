@@ -1,0 +1,43 @@
+name : LostArk market quant CI/CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name : code checkout
+        uses : actions/checkout@v4
+
+      # 도커 로그인
+      - name : DockerHub login
+        uses : docker/login-actions@v3
+        with:
+          username : ${{secrets.DOCKERHUB_USERNAME}}
+          password : ${{secrets.DOCKERHUB_TOKEN}}
+
+      # 이미지 빌드 및 업로드
+      - name : build and push
+        uses : docker/build-push-actions@v5
+        with :
+          context:
+          push : true
+          tags : ${{secrets.DOCKERHUB_USERNAME}}/my-python-app:latest
+
+  deploys : 
+    needs : build-and-pushs
+    runs-on: ubuntu-latest
+    steps:
+      - name: connect to aws / docker run
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{secrets.AWS_HOST}}
+          username: ubuntu
+          key: ${{secrets.AWS_SSH_KEY}}
+          script : |
+            sudo docker stop my-python-app || true
+            sudo docker rm my-python-app || true
+            sudo docker image prune -f
+            
