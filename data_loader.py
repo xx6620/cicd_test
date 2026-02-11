@@ -49,3 +49,32 @@ def load_merged_data():
 	df_final = df_final.sort_values("date")
 
 	return df_final
+
+
+@st.cache_data
+def load_gpt_scores():
+	engine = get_engine()
+
+	query = """
+		SELECT
+			i.item_id,
+			r.notice_date,
+			i.gpt_score
+		FROM item_notice_impacts i
+		JOIN raw_notices r
+			ON i.notice_id = r.id
+	"""
+
+	try:
+		# ✅ 항상 새 커넥션 컨텍스트 안에서 실행 (트랜잭션 꼬임 방지)
+		with engine.connect() as conn:
+			df_gpt = pd.read_sql(query, conn)
+	except Exception as e:
+		# 테이블이 아직 없거나 권한 문제일 수도 있으니,
+		# 일단 앱이 죽지 않도록 빈 DF를 리턴한다.
+		st.warning(f"GPT 점수 로딩 중 오류가 발생해서 GPT feature를 비활성화합니다. 상세: {e}")
+		return pd.DataFrame(columns=["item_id", "notice_date", "gpt_score"])
+
+	df_gpt["notice_date"] = pd.to_datetime(df_gpt["notice_date"])
+	return df_gpt
+
