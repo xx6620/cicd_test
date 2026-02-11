@@ -8,27 +8,28 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name : Code Checkout
-        uses : actions/checkout@v4
+      # github의 ubuntu에 내 코드를 가져옴
+      - name: Code Checkout
+        uses: actions/checkout@v4
       
       # 도커 허브 로그인
-      - name : DockerHub Login
-        uses : docker/login-action@v3
+      - name: DockerHub Login
+        uses: docker/login-action@v3
         with:
-          username : ${{ secrets.DOCKERHUB_USERNAME }}
-          password : ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # 이미지 빌드 / 업로드
-      - name : Build and Push
-        uses : docker/build-push-action@v5
-        with :
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
           context: .
-          push : true
+          push: true
           # docker-compose.yaml이랑 이미지 이름 같게
-          tags : ${{ secrets.DOCKERHUB_USERNAME }}/lostark_quant:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/lostark_quant:latest
 
-  deploys : 
-    needs : build-and-push
+  deploys: 
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: Connect to AWS / Deploy
@@ -37,10 +38,10 @@ jobs:
           host: ${{ secrets.AWS_HOST }}
           username: ubuntu # EC2 유저네임
           key: ${{ secrets.AWS_SSH_KEY }}
-          script : |
+          script: |
             # 프로젝트 폴더로 이동 (없으면 생성)
-            mkdir -p ~/lostark_quant
-            cd ~/lostark_quant
+            mkdir -p ~/lostark_quant # 폴더가 없으면 생성
+            cd ~/lostark_quant # 폴더로 이동
             
             # 서버에 .env파일 넣기
             echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
@@ -50,13 +51,12 @@ jobs:
             echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
             
             # 서버에 docker-compose.yaml 파일 쓰기
-            # EOF 사이의 내용이 서버에 파일로 저장
             cat <<EOF > docker-compose.yaml
             version: "3.8"
             services:
               app:
                 image: ${{ secrets.DOCKERHUB_USERNAME }}/lostark_quant:latest
-                container_name: lostark-streamlit
+                container_name: lostark_quant
                 restart: always
                 env_file: .env
                 ports:
