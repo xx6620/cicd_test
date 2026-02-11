@@ -63,8 +63,8 @@ jobs:
                   - "80:8501"
             EOF
 
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/lostark_quant:latest
             sudo docker-compose down || true
+            sudo docker image prune -f || true
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/lostark_quant:latest
             sudo docker-compose up -d
-            
-            sudo docker system prune -f
+            sudo docker system prune -f || true
