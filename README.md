@@ -249,4 +249,3 @@ DB 연결이 가능한 환경에서 아래 스크립트를 실행합니다.
 ```bash
 python export_demo_data.py
 ```
-##CI/CD
