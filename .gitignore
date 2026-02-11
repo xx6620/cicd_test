@@ -1,7 +1,24 @@
-.env
+# Python
 __pycache__/
 *.pyc
+
+# 가상환경
 venv/
-.venv/
-.ipynb_checkpoints/
+
+# models
+*.pkl
+*.pt
+*.h5
+*.np
+
+# logs
+lightning_logs/
+trained_models/
+
+# Local data / backups
+data/
+*.csv
+
+# 기타
+.env
 .DS_Store
